@@ -104,7 +104,7 @@ pub fn auto_from(attrs: TokenStream, input: TokenStream) -> TokenStream {
             fn from(value: #from) -> Self {
                 Self {
                     #(
-                        #fields: value.#fields
+                        #fields: value.#fields.into()
                     ),*
                     ,
                     #(
@@ -168,7 +168,7 @@ impl ImplData {
     fn remove_attrs(field: &mut Field) {
         field.attrs.retain(|a| {
             let Meta::List(MetaList { path, .. }) = &a.meta else {
-                return false
+                return false;
             };
 
             !path.is_ident(&Ident::new("auto_from_attr", Span::call_site()))
