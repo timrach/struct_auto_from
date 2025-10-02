@@ -33,6 +33,31 @@ mod test {
         metadata: HashMap<String, String>,
     }
 
+    // In the target struct (the one with the #auto_from annotation) we
+    // can also use types that can auto convert to the respective type
+    // in the reference struct.
+    // In the following example Model4 has the custom type 'MyString'
+    // for the field 'name'. This works because MyString implements From<String>.
+    #[derive(PartialEq, Eq, Debug, Clone, Dummy)]
+    struct MyString {
+        value: String,
+        other: i32,
+    }
+
+    impl From<String> for MyString {
+        fn from(value: String) -> Self {
+            MyString { value, other: 42 }
+        }
+    }
+
+    #[auto_from(Model1)]
+    #[derive(PartialEq, Eq, Debug, Clone, Dummy)]
+    struct Model4 {
+        id: i64,
+        name: MyString,
+        attrs: Vec<String>,
+    }
+
     #[rstest]
     fn test_auto_from() {
         // given
@@ -85,4 +110,20 @@ mod test {
         assert!(m1_3.attrs == m1.attrs);
         assert!(m1_3.metadata == Default::default());
     }
+    
+    #[rstest]
+    fn test_auto_from_into_value() {
+        // given
+        let mut m1: Model1 = Faker.fake();
+        m1.id = 1;
+
+        // when
+        let m1_4: Model4 = m1.clone().into();
+
+        // then
+        assert!(m1_4.id == 0);
+        assert!(m1_4.name.value == m1.name);
+        assert!(m1_4.attrs == m1.attrs);
+    }
+
 }
